@@ -8,7 +8,53 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+
+    connection = create_connection('db.sqlite')
+    with connection:
+        cursor = connection.cursor()
+        cursor.execute('SELECT * FROM Projects')
+        projects = cursor.fetchall()
+
+        html = render_template('dashboard.html')
+
+        for project in projects:
+            ProjectID = project[0]
+            ProjectName = project[1]
+            html += f"<h2 style=\"text-transform:uppercase\">{ProjectName}<h2>"
+
+            params = (ProjectID,)
+            cursor.execute('SELECT * FROM Configurations WHERE ProjectID = ?', params)
+            configs = cursor.fetchall()
+            for config in configs:
+                ConfigID = config[0]
+                ConfigName = config[1]
+                html += f"<h3 style=\"text-transform:capitalize\">{ConfigName}<h3>"
+
+                params = (ConfigID,)
+                cursor.execute('SELECT * FROM Assets WHERE ConfigID = ?', params)
+                assets = cursor.fetchall()
+                for asset in assets:
+                    AssetID = asset[0]
+                    AssetName = asset[1]
+                    Taken = asset[3]
+                    TakenBool = (Taken == 1)
+                    if TakenBool:
+                        colour = "solid red"
+                    else:
+                        colour = "solid green"
+                    TakenBy = asset[4]
+                    
+                    
+                    LastUpdated = asset[5]
+                    html += f"<form action=\"/takeorreturnasset?assetname={AssetName}&configname={ConfigName}&projectname={ProjectName}&takenby=test\" method=\"post\">"
+                    html += f"<input type=\"submit\" style=\"padding: 10px; border: 2px {colour}; width: 50%; margin: auto; text-align: center\">"
+                    html += f"Asset: {AssetName}<br>"
+                    html += f"Checked out? {TakenBool}<br>"
+                    if TakenBy != "NULL":
+                        html += f"Checked out by: {TakenBy}<br>"
+                    html += f"Last Updated: {LastUpdated}</input></form>"
+
+    return html
 
 @app.route("/newproject", methods=['POST'])
 def newProject():
@@ -68,8 +114,8 @@ def takeorreturnasset():
 
         cursor.execute('UPDATE Assets SET Taken = ?, TakenBy = ?, LastUpdated = ? WHERE (assetName = ? AND configID = (SELECT ConfigID FROM Configurations WHERE ConfigName = ? AND ProjectID = (SELECT ProjectID FROM Projects WHERE ProjectName = ?)))', params)
 
-
-    return '', 200
+    
+    return index(), 200
 
 def create_connection(path):
     connection = None
