@@ -1,27 +1,43 @@
-import http.server
-import socketserver # Establish the TCP Socket connections
-import json
+from flask import Flask, render_template, request
+import sqlite3
+import datetime
 
-hostName = "localhost"
-PORT = 9000
 
-def getstore():
-    with open('src/store.json', 'r') as openfile:
-        json_object = json.load(openfile)
-        print(json_object)
-        return json_object
- 
-class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/':
-            self.path = '../src/index.html'
-            return http.server.SimpleHTTPRequestHandler.do_GET(self)
-        elif self.path == '/getstore':
-            self.path = '../src/store.json'
-            return http.server.SimpleHTTPRequestHandler.do_GET(self)
- 
-Handler = MyHttpRequestHandler
- 
-with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print("Http Server Serving at port", PORT)
-    httpd.serve_forever()
+app = Flask(__name__)
+
+
+@app.route("/")
+def index():
+    return render_template('index.html')
+
+@app.route("/newproject", methods=['POST'])
+def newProject():
+    projectName = request.args.get('projectname', '')
+    updateNightly = request.args.get('updatenightly', '')
+    connection = create_connection('db.sqlite')
+    with connection:
+        cursor = connection.cursor()
+        params = (projectName, updateNightly)
+        cursor.execute('INSERT INTO Projects VALUES (NULL, ?, ?)', params)
+    return '', 200
+
+@app.route("/newconfig", methods=['POST'])
+def newconfig():
+    configName = request.args.get('configname', '')
+    projectName = request.args.get('projectname', '')
+    connection = create_connection('db.sqlite')
+    with connection:
+        cursor = connection.cursor()
+        params = (configName, projectName)
+        cursor.execute('INSERT INTO Configurations VALUES (NULL, ?, (SELECT ProjectID FROM Projects WHERE ProjectName = ?))', params)
+    return '', 200
+
+def create_connection(path):
+    connection = None
+    try:
+        connection = sqlite3.connect(path)
+        print("Connection to SQLite DB successful")
+    except Error as e:
+        print(f"The error '{e}' occurred")
+
+    return connection
