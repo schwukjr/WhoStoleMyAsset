@@ -1,21 +1,24 @@
-# Python 3 server example
 import http.server
 import socketserver # Establish the TCP Socket connections
+import json
 
 hostName = "localhost"
 PORT = 9000
 
-def gettest():
-    print("this works!")
+def getstore():
+    with open('src/store.json', 'r') as openfile:
+        json_object = json.load(openfile)
+        print(json_object)
+        return json_object
  
 class MyHttpRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             self.path = '../src/index.html'
             return http.server.SimpleHTTPRequestHandler.do_GET(self)
-        elif self.path == '/gettest':
-            gettest()
-            return '', 200
+        elif self.path == '/getstore':
+            self.path = '../src/store.json'
+            return http.server.SimpleHTTPRequestHandler.do_GET(self)
  
 Handler = MyHttpRequestHandler
  
