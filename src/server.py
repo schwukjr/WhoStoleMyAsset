@@ -42,17 +42,16 @@ def index():
                         colour = "solid red"
                     else:
                         colour = "solid green"
-                    TakenBy = asset[4]
-                    
-                    
+                    TakenBy = asset[4]                  
                     LastUpdated = asset[5]
+                    html += f"<div class=\"container-fluid\">"
                     html += f"<form action=\"/takeorreturnasset?assetname={AssetName}&configname={ConfigName}&projectname={ProjectName}&takenby=test\" method=\"post\">"
-                    html += f"<input type=\"submit\" style=\"padding: 10px; border: 2px {colour}; width: 50%; margin: auto; text-align: center\">"
-                    html += f"Asset: {AssetName}<br>"
-                    html += f"Checked out? {TakenBool}<br>"
+                    html += f"<input type=\"submit\" style=\"padding: 10px; border: 2px {colour}; text-align: center\" value=\""
+                    html += f"Asset: {AssetName}\r"
+                    html += f"Checked out? {TakenBool}\r"
                     if TakenBy != "NULL":
-                        html += f"Checked out by: {TakenBy}<br>"
-                    html += f"Last Updated: {LastUpdated}</input></form>"
+                        html += f"Checked out by: {TakenBy}\r"
+                    html += f"Last Updated: {LastUpdated}\"/></form></div>"
 
     return html
 
