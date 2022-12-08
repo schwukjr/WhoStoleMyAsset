@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import sqlite3
 import datetime
+import time
 
 
 app = Flask(__name__)
@@ -28,11 +29,12 @@ def index():
             for config in configs:
                 ConfigID = config[0]
                 ConfigName = config[1]
-                html += f"<h3 style=\"text-transform:capitalize\">{ConfigName}<h3>"
+                html += f"<h3 style=\"text-transform:capitalize\">{ConfigName}</h3>"
 
                 params = (ConfigID,)
-                cursor.execute('SELECT * FROM Assets WHERE ConfigID = ?', params)
+                cursor.execute('SELECT * FROM Assets WHERE ConfigID = ? ORDER BY LastUpdated DESC', params)
                 assets = cursor.fetchall()
+                html += "<div class=\"card-columns\" style=\"margin: 20px\">"
                 for asset in assets:
                     AssetID = asset[0]
                     AssetName = asset[1]
@@ -40,19 +42,33 @@ def index():
                     TakenBool = (Taken == 1)
                     if TakenBool:
                         colour = "solid red"
+                        buttonText = "Check In"
                     else:
                         colour = "solid green"
+                        buttonText = "Check Out"
+
                     TakenBy = asset[4]                  
                     LastUpdated = asset[5]
-                    html += f"<div class=\"container-fluid\">"
-                    html += f"<form action=\"/takeorreturnasset?assetname={AssetName}&configname={ConfigName}&projectname={ProjectName}&takenby=test\" method=\"post\">"
-                    html += f"<input type=\"submit\" style=\"padding: 10px; border: 2px {colour}; text-align: center\" value=\""
-                    html += f"Asset: {AssetName}\r"
-                    html += f"Checked out? {TakenBool}\r"
-                    if TakenBy != "NULL":
-                        html += f"Checked out by: {TakenBy}\r"
-                    html += f"Last Updated: {LastUpdated}\"/></form></div>"
-
+                    lastUpdatedFormatted = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(LastUpdated))
+                    
+                    html += f"""
+                    <div class="card text-center">
+                        <div class="card-header"><h3>{AssetName}</h3></div>
+                        <div class="card-body">
+                            <div class="card-text">
+                                Checked Out? {TakenBool}<br/>
+                                Checked out by: {TakenBy}<br/>
+                                Last Updated: {lastUpdatedFormatted}<br/>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <form action="/takeorreturnasset?assetname={AssetName}&configname={ConfigName}&projectname={ProjectName}&takenby=test2" method="post">
+                                <input type="submit" style="padding: 10px; border: 2px {colour}; text-align: center" value="{buttonText}" />
+                            </form>
+                        </div>
+                    </div>
+                    """
+                html += "</div>"
     return html
 
 @app.route("/newproject", methods=['POST'])
