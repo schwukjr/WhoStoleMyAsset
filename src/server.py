@@ -32,7 +32,7 @@ def index():
                 html += f"<h3 style=\"text-transform:capitalize\">{ConfigName}</h3>"
 
                 params = (ConfigID,)
-                cursor.execute('SELECT * FROM Assets WHERE ConfigID = ? ORDER BY LastUpdated DESC', params)
+                cursor.execute('SELECT * FROM Assets WHERE ConfigID = ? ORDER BY Taken DESC, LastUpdated DESC', params)
                 assets = cursor.fetchall()
                 html += "<div class=\"card-columns\" style=\"margin: 20px\">"
                 for asset in assets:
