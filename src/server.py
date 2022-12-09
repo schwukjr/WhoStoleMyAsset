@@ -24,7 +24,8 @@ def index():
             html += f"<h2 style=\"text-transform:uppercase\">{ProjectName}<h2>"
 
             params = (ProjectID,)
-            cursor.execute('SELECT * FROM Configurations WHERE ProjectID = ?', params)
+            cursor.execute(
+                'SELECT * FROM Configurations WHERE ProjectID = ?', params)
             configs = cursor.fetchall()
             for config in configs:
                 ConfigID = config[0]
@@ -32,7 +33,8 @@ def index():
                 html += f"<h3 style=\"text-transform:capitalize\">{ConfigName}</h3>"
 
                 params = (ConfigID,)
-                cursor.execute('SELECT * FROM Assets WHERE ConfigID = ? ORDER BY Taken DESC, LastUpdated DESC', params)
+                cursor.execute(
+                    'SELECT * FROM Assets WHERE ConfigID = ? ORDER BY Taken DESC, LastUpdated DESC', params)
                 assets = cursor.fetchall()
                 html += "<div class=\"card-columns\" style=\"margin: 20px\">"
                 for asset in assets:
@@ -47,10 +49,11 @@ def index():
                         colour = "solid green"
                         buttonText = "Check Out"
 
-                    TakenBy = asset[4]                  
+                    TakenBy = asset[4]
                     LastUpdated = asset[5]
-                    lastUpdatedFormatted = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(LastUpdated))
-                    
+                    lastUpdatedFormatted = time.strftime(
+                        '%Y-%m-%d %H:%M:%S', time.localtime(LastUpdated))
+
                     html += f"""
                     <div class="card text-center">
                         <div class="card-header"><h3>{AssetName}</h3></div>
@@ -71,40 +74,55 @@ def index():
                 html += "</div>"
     return html
 
+
 @app.route("/newproject", methods=['POST'])
 def newProject():
-    projectName = request.args.get('projectname', '')
-    updateNightly = request.args.get('updatenightly', '')
+    projectName = request.form.get('projectName', '')
+    updateNightly = request.form.get('updateNightly', '')
     connection = create_connection('db.sqlite')
-    with connection:
-        cursor = connection.cursor()
-        params = (projectName, updateNightly)
-        cursor.execute('INSERT INTO Projects VALUES (NULL, ?, ?)', params)
-    return '', 200
+    try:
+        with connection:
+            cursor = connection.cursor()
+            params = (projectName, updateNightly)
+            cursor.execute('INSERT INTO Projects VALUES (NULL, ?, ?)', params)
+        return index(), 200
+    except:
+        return 'That input is not allowed. Please re-load and try again.', 400
+
 
 @app.route("/newconfig", methods=['POST'])
 def newconfig():
-    configName = request.args.get('configname', '')
-    projectName = request.args.get('projectname', '')
+    configName = request.form.get('configName', '')
+    projectName = request.form.get('projectName', '')
     connection = create_connection('db.sqlite')
-    with connection:
-        cursor = connection.cursor()
-        params = (configName, projectName)
-        cursor.execute('INSERT INTO Configurations VALUES (NULL, ?, (SELECT ProjectID FROM Projects WHERE ProjectName = ?))', params)
-    return '', 200
+    try:
+        with connection:
+            cursor = connection.cursor()
+            params = (configName, projectName)
+            cursor.execute(
+                'INSERT INTO Configurations VALUES (NULL, ?, (SELECT ProjectID FROM Projects WHERE ProjectName = ?))', params)
+        return index(), 200
+    except:
+        return 'That input is not allowed. Please re-load and try again.', 400
 
-@app.route("/newasset", methods=['POST']) #TODO: Add check to ensure no duplicates are allowed in single config.
+
+# TODO: Add check to ensure no duplicates are allowed in single config.
+@app.route("/newlogin", methods=['POST'])
 def newasset():
     seconds_since_epoch = datetime.datetime.now().timestamp()
-    assetName = request.args.get('assetname', '')
-    configName = request.args.get('configname', '')
-    projectName = request.args.get('projectname', '')
+    assetName = request.form.get('loginName', '')
+    configName = request.form.get('configName', '')
+    projectName = request.form.get('projectName', '')
     connection = create_connection('db.sqlite')
-    with connection:
-        cursor = connection.cursor()
-        params = (assetName, configName, projectName, seconds_since_epoch)
-        cursor.execute('INSERT INTO Assets VALUES (NULL, ?, (SELECT ConfigID FROM Configurations WHERE ConfigName = ? AND ProjectID = (SELECT ProjectID FROM Projects WHERE ProjectName = ?)), 0, NULL, ?)', params)
-    return '', 200
+    try:
+        with connection:
+            cursor = connection.cursor()
+            params = (assetName, configName, projectName, seconds_since_epoch)
+            cursor.execute('INSERT INTO Assets VALUES (NULL, ?, (SELECT ConfigID FROM Configurations WHERE ConfigName = ? AND ProjectID = (SELECT ProjectID FROM Projects WHERE ProjectName = ?)), 0, NULL, ?)', params)
+        return index(), 200
+    except:
+        return 'That input is not allowed. Please re-load and try again.', 400
+
 
 @app.route("/takeorreturnasset", methods=['POST'])
 def takeorreturnasset():
@@ -112,7 +130,7 @@ def takeorreturnasset():
     configName = request.args.get('configname', '')
     projectName = request.args.get('projectname', '')
     takenBy = request.args.get('takenby', '')
-    
+
     connection = create_connection('db.sqlite')
     with connection:
         cursor = connection.cursor()
@@ -123,14 +141,16 @@ def takeorreturnasset():
         seconds_since_epoch = datetime.datetime.now().timestamp()
         for row in rows:
             if row[0] == 0:
-                params = (1, takenBy, seconds_since_epoch, assetName, configName, projectName)   
+                params = (1, takenBy, seconds_since_epoch,
+                          assetName, configName, projectName)
             else:
-                params = (0, 'NULL', seconds_since_epoch, assetName, configName, projectName)   
+                params = (0, 'NULL', seconds_since_epoch,
+                          assetName, configName, projectName)
 
         cursor.execute('UPDATE Assets SET Taken = ?, TakenBy = ?, LastUpdated = ? WHERE (assetName = ? AND configID = (SELECT ConfigID FROM Configurations WHERE ConfigName = ? AND ProjectID = (SELECT ProjectID FROM Projects WHERE ProjectName = ?)))', params)
 
-    
     return index(), 200
+
 
 def create_connection(path):
     connection = None
