@@ -6,6 +6,14 @@ h1 {
     text-align: center;
 }
 
+a h1 {
+    color: black;
+}
+
+a:hover h1{
+    color: royalblue;
+}
+
 h2 {
     margin: 20px;
     display: inline-block;
@@ -14,4 +22,8 @@ h2 {
 h3 {
     margin: 20px;
     display: inline-block;
+}
+
+footer {
+    margin: 20px;
 }

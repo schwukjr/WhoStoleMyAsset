@@ -11,6 +11,7 @@ app = Flask(__name__)
 def index():
     html = render_template('index.html')
     html += renderProjectSelect()
+    html += render_template('footer.html')
     return html
 
 def renderProjectSelect():
@@ -27,7 +28,7 @@ def renderProjectSelect():
             ProjectName = project[1]
             html += f"""<option value="{ProjectName}">{ProjectName}</option>"""
         html += f"</select>"
-        html += f"""<input type="submit" value="Submit"/>"""
+        html += f"""<input type="submit" value="Submit" style="margin: 10px;"/>"""
         html += f"</form>"
     return html
 
@@ -160,10 +161,8 @@ def renderContent(projectName):
                         TakenBool = (Taken == 1)
                         if TakenBool:
                             colour = "solid red"
-                            buttonText = "Check In"
                         else:
                             colour = "solid green"
-                            buttonText = "Check Out"
 
                         TakenBy = asset[4]
                         LastUpdated = asset[5]
@@ -171,23 +170,61 @@ def renderContent(projectName):
                             '%Y-%m-%d %H:%M:%S', time.localtime(LastUpdated))
 
                         html += f"""
+                        <div id="newProjectForm{AssetName}{ConfigName}{ProjectName}" class="modal fade">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title">Add Project</h1>
+                                </div>
+                                <div class="modal-body">
+                                    <form role="form" method="POST" action="/takeorreturnasset">
+                                    <input type="text" name= "assetname" value="{AssetName}" hidden/>
+                                    <input type="text" name= "configname" value="{ConfigName}" hidden/>
+                                    <input type="text" name= "projectname" value="{ProjectName}" hidden/>
+                                    <div class="form-group">
+                                        <label class="control-label">Taken By:</label>
+                                        <div>
+                                            <input type="text" class="form-control input-lg" name="takenby" value="" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div>
+                                            <button type="submit" class="btn btn-success">Confirm</button>
+                                        </div>
+                                    </div>
+                                    </form>
+                                </div>
+                                </div>
+                            </div>
+                        </div>"""
+
+                        html += f"""
                         <div class="card text-center">
                             <div class="card-header"><h3>{AssetName}</h3></div>
                             <div class="card-body">
                                 <div class="card-text">
-                                    Checked Out? {TakenBool}<br/>
-                                    Checked out by: {TakenBy}<br/>
-                                    Last Updated: {lastUpdatedFormatted}<br/>
+                                    Checked Out? {TakenBool}<br/>"""
+                        if(TakenBool):
+                            html += f"""Checked out by: {TakenBy}<br/>"""
+                        else: html += "<br/>"
+                        html += f"""Last Updated: {lastUpdatedFormatted}<br/>
                                 </div>
                             </div>
                             <div class="card-footer">
-                                <form action="/takeorreturnasset" method="post">
-                                    <input type="text" name= "assetname" value="{AssetName}" hidden/>
-                                    <input type="text" name= "configname" value="{ConfigName}" hidden/>
-                                    <input type="text" name= "projectname" value="{ProjectName}" hidden/>
-                                    <input type="text" name= "takenby" value="test" hidden/>
-                                    <input type="submit" style="padding: 10px; border: 2px {colour}; text-align: center" value="{buttonText}" />
-                                </form>
+                                <div class="text-center">"""
+                        if (TakenBool == False):
+                            html += f"""
+                                    <button type="button" style="padding: 10px; border: 2px {colour}; text-align: center" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#newProjectForm{AssetName}{ConfigName}{ProjectName}">Check Out</button>"""
+                        else:
+                            html += f"""
+                                    <form action="/takeorreturnasset" method="post">
+                                        <input type="text" name= "assetname" value="{AssetName}" hidden/>
+                                        <input type="text" name= "configname" value="{ConfigName}" hidden/>
+                                        <input type="text" name= "projectname" value="{ProjectName}" hidden/>
+                                        <input type="text" name= "takenby" value="null" hidden/>
+                                        <input type="submit" class="btn btn-secondary btn-lg" style="padding: 10px; border: 2px {colour}; text-align: center" value="Check In" />
+                                    </form> """     
+                        html += f"""</div>
                             </div>
                         </div>
                         """
@@ -204,7 +241,7 @@ def getProject(projectNameParam=""):
     html = render_template('dashboard.html')
     html += renderProjectSelect()
     html += renderContent(projectName)
-        
+    html += render_template('footer.html')
     return html
 
 
