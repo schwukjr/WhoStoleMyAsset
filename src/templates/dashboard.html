@@ -24,40 +24,8 @@
       src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
       integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
       crossorigin="anonymous"></script>
-      <a href="/"><h1>Dude, where's my login?</h1></a>
+      <a href="/"><h1>Dude, where's my Login?</h1></a>
     <hr />
-
-    <div id="newProjectForm" class="modal fade">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title">Add Project</h1>
-          </div>
-          <div class="modal-body">
-            <form role="form" method="POST" action="/newproject">
-              <div class="form-group">
-                <label class="control-label">Project Name</label>
-                <div>
-                  <input type="text" class="form-control input-lg" name="projectName" value="" />
-                </div>
-              </div>
-              <div class="form-group">
-                <div>
-                  <div class="checkbox">
-                    <label> <input type="checkbox" name="updateNightly" /> Update Nightly? </label>
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <div>
-                  <button type="submit" class="btn btn-success">Submit</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div id="newConfigForm" class="modal fade">
       <div class="modal-dialog" role="document">
@@ -126,8 +94,6 @@
         </div>
       </div>
     </div>
-
-    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#newProjectForm">Add Project</button>
 
     <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#newConfigForm">Add Config</button>
 

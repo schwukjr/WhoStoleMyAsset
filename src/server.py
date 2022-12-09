@@ -16,6 +16,33 @@ def index():
         cursor.execute('SELECT * FROM Projects')
         projects = cursor.fetchall()
 
+        html = render_template('index.html')
+        html += f"""<form action="/getprojectdashboard" method="get">
+                        <label for="projectName">Project:</label>
+                        <select name="projectName" id="projectName" style="text-transform:uppercase">"""
+        for project in projects:
+            ProjectName = project[1]
+            html += f"""<option value="{ProjectName}">{ProjectName}</option>"""
+        html += f"</select>"
+        html += f"""<input type="submit" value="Submit"/>"""
+        html += f"</form>"
+    return html
+
+@app.route("/getprojectdashboard", methods=['GET'])
+def getProject(projectNameParam=""):
+    connection = create_connection('db.sqlite')
+    with connection:
+        cursor = connection.cursor()
+
+        if(projectNameParam == ""):
+            projectName = request.args.get('projectName', '')
+        else:
+            projectName = projectNameParam
+
+        params = (projectName,)
+        cursor.execute('SELECT * FROM Projects WHERE ProjectName = ?', params)
+        projects = cursor.fetchall()
+
         html = render_template('dashboard.html')
 
         for project in projects:
@@ -65,7 +92,11 @@ def index():
                             </div>
                         </div>
                         <div class="card-footer">
-                            <form action="/takeorreturnasset?assetname={AssetName}&configname={ConfigName}&projectname={ProjectName}&takenby=test2" method="post">
+                            <form action="/takeorreturnasset" method="post">
+                                <input type="text" name= "assetname" value="{AssetName}" hidden/>
+                                <input type="text" name= "configname" value="{ConfigName}" hidden/>
+                                <input type="text" name= "projectname" value="{ProjectName}" hidden/>
+                                <input type="text" name= "takenby" value="test" hidden/>
                                 <input type="submit" style="padding: 10px; border: 2px {colour}; text-align: center" value="{buttonText}" />
                             </form>
                         </div>
@@ -85,7 +116,7 @@ def newProject():
             cursor = connection.cursor()
             params = (projectName, updateNightly)
             cursor.execute('INSERT INTO Projects VALUES (NULL, ?, ?)', params)
-        return index(), 200
+        return getProject(projectName), 200
     except:
         return 'That input is not allowed. Please re-load and try again.', 400
 
@@ -101,7 +132,7 @@ def newconfig():
             params = (configName, projectName)
             cursor.execute(
                 'INSERT INTO Configurations VALUES (NULL, ?, (SELECT ProjectID FROM Projects WHERE ProjectName = ?))', params)
-        return index(), 200
+        return getProject(projectName), 200
     except:
         return 'That input is not allowed. Please re-load and try again.', 400
 
@@ -119,17 +150,17 @@ def newasset():
             cursor = connection.cursor()
             params = (assetName, configName, projectName, seconds_since_epoch)
             cursor.execute('INSERT INTO Assets VALUES (NULL, ?, (SELECT ConfigID FROM Configurations WHERE ConfigName = ? AND ProjectID = (SELECT ProjectID FROM Projects WHERE ProjectName = ?)), 0, NULL, ?)', params)
-        return index(), 200
+        return getProject(projectName), 200
     except:
         return 'That input is not allowed. Please re-load and try again.', 400
 
 
 @app.route("/takeorreturnasset", methods=['POST'])
 def takeorreturnasset():
-    assetName = request.args.get('assetname', '')
-    configName = request.args.get('configname', '')
-    projectName = request.args.get('projectname', '')
-    takenBy = request.args.get('takenby', '')
+    assetName = request.form.get('assetname', '')
+    configName = request.form.get('configname', '')
+    projectName = request.form.get('projectname', '')
+    takenBy = request.form.get('takenby', '')
 
     connection = create_connection('db.sqlite')
     with connection:
@@ -149,7 +180,7 @@ def takeorreturnasset():
 
         cursor.execute('UPDATE Assets SET Taken = ?, TakenBy = ?, LastUpdated = ? WHERE (assetName = ? AND configID = (SELECT ConfigID FROM Configurations WHERE ConfigName = ? AND ProjectID = (SELECT ProjectID FROM Projects WHERE ProjectName = ?)))', params)
 
-    return index(), 200
+    return getProject(projectName), 200
 
 
 def create_connection(path):
