@@ -20,7 +20,7 @@ def renderProjectSelect():
         cursor.execute('SELECT * FROM Projects')
         projects = cursor.fetchall()
 
-        html = f"""<form action="/getprojectdashboard" method="get">
+        html = f"""<form action="/getprojectdashboard" method="get" style="margin: 20px;">
                         <label for="projectName">Project:</label>
                         <select name="projectName" id="projectName" style="text-transform:uppercase">"""
         for project in projects:
@@ -76,7 +76,7 @@ def renderConfigButton(projectName):
                 </div>
             </div>
 
-            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#newConfigForm">Add Config</button>"""
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#newConfigForm">Add Config</button><p/>"""
     return html
 
 def renderLoginButton(loginButtonCount, configName, projectName):
